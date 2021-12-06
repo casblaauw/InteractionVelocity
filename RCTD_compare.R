@@ -63,27 +63,6 @@ seur@meta.data %>%
 print("Total number of spots after QC:")
 print(nrow(seur@meta.data))
 
-  
-
-# # Plot spatial distributions
-# # Show multiple stats at once? 
-# BetterSpatialPlot <- function(seurat_obj, feat_name) {
-#   coords <- seurat_obj@images$image@coordinates
-#   feat <- seurat_obj@meta.data %>% 
-#     rownames_to_column('barcode') %>% 
-#     rename(feature = !!sym(feat_name))
-#   plot_data <- full_join(x = coords, y = feat, by = c('cells' = 'barcode'))
-#   plot_data <- plot_data %>% mutate(feature = fct_lump_n(feature, 7))
-#   # plot_data <- plot_data %>% filter(feature %in% c('16', '16/26', '26'))
-#   ggplot(plot_data) + 
-#     geom_point(aes(x, y, col = feature), size = 0.5) + 
-#     guides(col = guide_legend(title = feat_name)) +
-#     theme_minimal()
-# }
-
-# BetterSpatialPlot(seur, 'types')
-# BetterSpatialPlot(seur, 'spot_class')
-
 # Analyse top genes --------------------------------------
 
 over_3 <- seur@meta.data %>% count(types) %>% filter(n > 3) %>% pull(types)
@@ -104,7 +83,6 @@ combinations_list <- setNames(
   pmap(combinations, ~c(type1 = ..1, types = ..3, type2 = ..2)),
   combinations$types
 ) 
-
 
 # Map over all comparisons to find markers and build heatmap
 all_markers <- map(combinations_list, function(combs) {
@@ -137,7 +115,7 @@ all_markers <- map(combinations_list, function(combs) {
       })
     
     
-    # v4
+    # Create heatmaps
     heat <- zscores %>% 
       ggplot(aes(x = barcode, y = marker, fill = zscore)) + 
         geom_tile() +
@@ -154,7 +132,6 @@ all_markers <- map(combinations_list, function(combs) {
                             # limits = c(-1, 4),
                             palette = 'RdBu') +
         facet_wrap(~facet_text, scales = 'free_x')
-      # ggsave('test_heatmap2.png', heat)
 
     ggsave(glue("heatmaps/ggheatmap2_{combs['type1']}_{combs['type2']}.png"), heat)
     print(glue("Finished plot ggheatmap2_{combs['type1']}_{combs['type2']}.png"))
